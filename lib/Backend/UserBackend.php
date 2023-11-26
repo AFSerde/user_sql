@@ -264,14 +264,27 @@ final class UserBackend extends ABackend implements
             foreach ($this->actions as $action) {
                 $action->doAction($user);
             }
-        }elseif ($this->properties[Opt::PLACEHOLDER_USERS]){
+        }elseif ($this->properties[Opt::PLACEHOLDER_USERS] && intval($uid)>0)){
+            $this->logger->error(
+                "User int not found and deleted user object created: " . $uid, ["app" => $this->appName]
+            );
             $user = new User();
             $user->uid = $uid;
             $user->active = false;
-            $user->email = "";
+            $user->email = NULL;
             $user->name = "Deleted User";
             $user->username = "deleted";
-        }
+			$user->home = $uid;
+			$user->quota = NULL;
+			$user->salt = NULL;
+			$user->avatar = NULL;
+
+            $this->cache->set($cacheKey, $user);
+        }elseif ($this->properties[Opt::PLACEHOLDER_USERS]) {
+			$this->logger->error(
+                "User string not found: " . $uid, ["app" => $this->appName]
+            );
+		}
 
         return $user;
     }
